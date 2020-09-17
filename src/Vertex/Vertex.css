@@ -1,0 +1,21 @@
+.vertex {
+	width: 100px;
+	height: 100px;
+	position: absolute;
+	border: 1px solid black;
+	user-select: none;
+}
+
+.vertex-title {
+	border: 1px solid black;
+	cursor: move;
+}
+
+.vertex-coors {
+	display: flex;
+}
+
+.vertex-coors__elem {
+	border: 1px solid black;
+	width: 100%;
+}

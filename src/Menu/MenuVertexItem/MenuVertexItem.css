@@ -1,0 +1,39 @@
+.menu-item {
+	height: 90px;
+	border: 1px solid black;
+}
+
+.menu-item-row {
+	display: flex;
+	margin: 4px;
+	height: 25px;
+	align-items: baseline;
+}
+
+.menu-item-row__label {
+	margin-right: 4px;
+	flex-shrink: 0;
+}
+
+.menu-item-row__input {
+	border-width: 0;
+	padding: 0;
+	border-bottom: 1px solid black;
+	outline: none;
+	margin-right: 4px;
+	width: 100%;
+}
+
+.menu-item-row__input:disabled {
+	border: none;
+}
+
+.menu-item__button {
+	width: 50px;
+	height: 25px;
+	margin: 0 4px;
+}
+
+.menu-item__buttons {
+	justify-content: flex-end;
+}

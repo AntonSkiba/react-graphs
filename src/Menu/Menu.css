@@ -1,0 +1,10 @@
+.menu {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.menu-list {
+	height: 100%;
+	overflow-y: auto;
+}
