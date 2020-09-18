@@ -8,8 +8,6 @@ export default class MenuVertexItem extends Component {
 		
 		this.state = {
 			name: '',
-			x: undefined,
-			y: undefined,
 
 			_editMode: this.props.editMode
 		}
@@ -22,7 +20,7 @@ export default class MenuVertexItem extends Component {
 	}
 
 	_buttonsClick(action, e) {
-		let {onSave, onRemove} = this.props;
+		let {onSave, onRemove, onDownToMove} = this.props;
 		switch(action) {
 			case 'save':
 				// Меняем мод
@@ -30,8 +28,7 @@ export default class MenuVertexItem extends Component {
 					_editMode: false
 				});
 				onSave && onSave(e, {
-					name: this.state.name,
-					coors: [this.state.x, this.state.y]
+					name: this.state.name
 				});
 				break;
 			case 'edit':
@@ -43,6 +40,13 @@ export default class MenuVertexItem extends Component {
 			case 'remove':
 				onRemove && onRemove(e);
 				break;
+			case 'move':
+				// Можно перемещать, если закончили редактировать
+				if (!this.state._editMode) {
+					onDownToMove && onDownToMove(e);
+					onRemove && onRemove(e);
+				}
+				break;
 		}
 	}
 	
@@ -53,7 +57,9 @@ export default class MenuVertexItem extends Component {
 
 		return (
 			<div className="menu-item">
-				<div className="menu-item-row">
+				<div 
+					className={"menu-item-row" + (!this.state._editMode ? " menu-item__movable" : '')} 
+					onMouseDown={this._buttonsClick.bind(this, 'move')}>
 					<div className="menu-item-row__label">Name</div>
 					<input
 						className="menu-item-row__input" 
@@ -64,7 +70,7 @@ export default class MenuVertexItem extends Component {
 						onChange={this._inputChange.bind(this, 'name')}/>
 				</div>
 
-				<div className="menu-item-row">
+				{/* <div className="menu-item-row">
 					<div className="menu-item-row__label">X = </div>
 					<input
 						className="menu-item-row__input" 
@@ -82,7 +88,7 @@ export default class MenuVertexItem extends Component {
 						disabled={!this.state._editMode}
 						onChange={this._inputChange.bind(this, 'y')}/>
 					<div className="menu-item-row__label"> | </div>
-				</div>
+				</div> */}
 
 				<div className="menu-item-row menu-item__buttons">
 					{editButton}

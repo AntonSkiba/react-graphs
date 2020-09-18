@@ -7,13 +7,15 @@ export default class Vertex extends Component {
 
 		this.state = {
 			id: props.id,
-			coors: props.coors,
-			_startCoors: props.coors,
+			coors: props.coors
 		}
 
 		this._dragMouseDown = this._dragMouseDown.bind(this);
 		this._elementDrag = this._elementDrag.bind(this);
 		this._dragMouseUp = this._dragMouseUp.bind(this);
+
+		// Вызываем, когда вершина создается, чтобы сразу ее перемещать
+		this._dragMouseDown();
 	}
 
 	_dragMouseDown() {

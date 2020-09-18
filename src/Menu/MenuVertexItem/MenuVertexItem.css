@@ -1,6 +1,9 @@
 .menu-item {
-	height: 90px;
 	border: 1px solid black;
+}
+
+.menu-item__movable {
+	cursor: move;
 }
 
 .menu-item-row {
@@ -26,6 +29,7 @@
 
 .menu-item-row__input:disabled {
 	border: none;
+	cursor: move;
 }
 
 .menu-item__button {

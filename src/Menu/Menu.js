@@ -46,6 +46,11 @@ export default class Menu extends Component {
 		});
 	}
 
+	_onDownToMove(key, e) {
+		let {onItemDownToMove} = this.props;
+		onItemDownToMove && onItemDownToMove(e, key, this.state.vertices[key]);
+	}
+
 	render() {
 		const listItems = Object.keys(this.state.vertices).map((key) => {
 			// рендерим только, если в вершинах есть значение по ключу
@@ -54,6 +59,7 @@ export default class Menu extends Component {
 					<MenuVertexItem 
 						onSave={this._onSave.bind(this, key)} 
 						onRemove={this._onRemove.bind(this, key)}
+						onDownToMove={this._onDownToMove.bind(this, key)}
 						key={key}/>
 				)
 			}
