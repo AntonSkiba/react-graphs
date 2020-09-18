@@ -1,7 +1,8 @@
-import React, { Component } from 'react';
+import React from 'react';
+import RootComponent from '../RootComponent';
 import './Menu.css';
 
-import Button from './Button/Button';
+import Button from '../Button/Button';
 import MenuVertexItem from './MenuVertexItem/MenuVertexItem';
 
 const __generateUID = () => {
@@ -14,29 +15,37 @@ const __generateUID = () => {
   return text;
 }
 
-export default class Menu extends Component {
+export default class Menu extends RootComponent {
 	constructor(props) {
 		super(props);
+		this._notify = this._notify.bind(this);
 
 		this.state = {
-			vertices: {}
+			vertices: {},
+			isHover: false
 		}
 
-		this._createVertex = this._createVertex.bind(this);
+		this.createVertex = this.createVertex.bind(this);
 	}
 
-	_createVertex() {
-		// Создаем новый пустой объект, под уникальным ключом
+	createVertex(e, key, vertex) {
+		// Если пришел ключ, значит возвращаем старый компонент, иначе
+		// создаем новый пустой объект, под уникальным ключом
 		// для того, чтобы сработала проверка на рендере
 		this.setState({
 			vertices: Object.assign({
-				[__generateUID()]: {}
-			}, this.state.vertices)
+				[key || __generateUID()]: vertex || {}
+			}, this.state.vertices),
+			isHover: false
 		});
 	}
 
 	_onSave(key, e, vertex) {
-		this.state.vertices[key] = vertex;
+		this.setState({
+			vertices: Object.assign(this.state.vertices, {
+				[key]: vertex
+			})
+		});
 	}
 
 	_onRemove(key) {
@@ -46,9 +55,15 @@ export default class Menu extends Component {
 		});
 	}
 
+	// публичный метод, подсвечивает меню, если на него направлен элемент
+	changeZone(isMenu) {
+		this.setState({
+			isHover: isMenu
+		});
+	}
+
 	_onDownToMove(key, e) {
-		let {onItemDownToMove} = this.props;
-		onItemDownToMove && onItemDownToMove(e, key, this.state.vertices[key]);
+		this._notify('itemDownToMove', e, key, this.state.vertices[key]);
 	}
 
 	render() {
@@ -56,8 +71,9 @@ export default class Menu extends Component {
 			// рендерим только, если в вершинах есть значение по ключу
 			if (this.state.vertices[key]) {
 				return (
-					<MenuVertexItem 
-						onSave={this._onSave.bind(this, key)} 
+					<MenuVertexItem
+						vertex={this.state.vertices[key]}
+						onSave={this._onSave.bind(this, key)}
 						onRemove={this._onRemove.bind(this, key)}
 						onDownToMove={this._onDownToMove.bind(this, key)}
 						key={key}/>
@@ -66,8 +82,8 @@ export default class Menu extends Component {
 		});
 
 		return (
-			<div className="menu">
-				<Button onClick={this._createVertex}>+ New vertex</Button>
+			<div className={"menu" + (this.state.isHover ? " menu-hover" : "")} id="menu">
+				<Button onClick={this.createVertex}>+ New vertex</Button>
 				<div className="menu-list">
 					{listItems}
 				</div>

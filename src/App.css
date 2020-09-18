@@ -12,3 +12,19 @@
 	border: 1px solid black;
 	flex-shrink: 0;
 }
+
+.app-success {
+	color: #009966;
+}
+
+.app-functional {
+	color: #336699;
+}
+
+.app-error {
+	color: #b90909;
+}
+
+.app-disabled {
+	color: #999999;
+}

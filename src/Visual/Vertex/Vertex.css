@@ -1,6 +1,5 @@
 .vertex {
-	width: 100px;
-	height: 100px;
+	width: 120px;
 	position: absolute;
 	border: 1px solid black;
 	user-select: none;
@@ -9,6 +8,10 @@
 .vertex-title {
 	border: 1px solid black;
 	cursor: move;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	text-align: center;
 }
 
 .vertex-coors {

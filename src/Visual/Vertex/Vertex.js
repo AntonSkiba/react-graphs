@@ -1,13 +1,22 @@
-import React, { Component } from 'react';
+import React from 'react';
+import RootComponent from '../../RootComponent';
 import './Vertex.css';
 
-export default class Vertex extends Component {
+import Button from '../../Button/Button';
+
+export default class Vertex extends RootComponent {
 	constructor(props) {
 		super(props);
+		this._notify = this._notify.bind(this);
 
 		this.state = {
 			id: props.id,
-			coors: props.coors
+			coors: props.coors,
+			vertex: {
+				name: props.name,
+			},
+
+			_zone: 'visual'
 		}
 
 		this._dragMouseDown = this._dragMouseDown.bind(this);
@@ -32,11 +41,30 @@ export default class Vertex extends Component {
 				coors: [e.clientX - 50, e.clientY - 10]
 			});
 		}
+
+		// Определяем куда вершина наведена
+		
+		if (e.clientX > document.getElementById('menu').offsetLeft && this.state._zone !== 'menu') {
+			this.setState({
+				_zone: 'menu'
+			});
+			this._notify('changeZone', true);
+		} else if (e.clientX < document.getElementById('menu').offsetLeft && this.state._zone !== 'visual') {
+			this.setState({
+				_zone: 'visual'
+			});
+			this._notify('changeZone', false);
+		}
 	}
 
-	_dragMouseUp() {
+	_dragMouseUp(e) {
 		document.removeEventListener('mouseup', this._dragMouseUp);
 		document.removeEventListener('mousemove', this._elementDrag)
+
+		if (this.state._zone === 'menu') {
+			this._notify('returnVertex', e, this.state.vertex);
+			this._notify('remove', e);
+		}
 	}
 
 	render() {
@@ -45,11 +73,18 @@ export default class Vertex extends Component {
 				className="vertex" 
 				id={this.state.id} 
 				style={{top: this.state.coors[1], left: this.state.coors[0]}}>
-				<div className="vertex-title" onMouseDown={this._dragMouseDown}>{this.props.name}</div>
+				<div 
+					className={"vertex-title" + (!this.props.name ? " app-disabled" : '')} 
+					title={this.state.vertex.name}
+					onMouseDown={this._dragMouseDown}>
+					{this.state.vertex.name || '~ unnamed ~'}
+				</div>
 				<div className="vertex-coors">
 					<div className="vertex-coors__elem">x: {this.state.coors[0] || 0}</div>
 					<div className="vertex-coors__elem">y: {this.state.coors[1] || 0}</div>
 				</div>
+
+				<Button className="app-error" onClick={this._notify.bind(this, 'remove')}>✘</Button>
 			</div>
 		);
 	}
@@ -57,5 +92,4 @@ export default class Vertex extends Component {
 
 Vertex.defaultProps = {
 	coors: [200, 200],
-	name: 'unnamed vertex'
 };
