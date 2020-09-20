@@ -26,5 +26,19 @@ export default class RootComponent extends Component {
 	_setChildren(name, element) {
 		this._children[name] = element;
 	}
+
+	_generateUID() {
+		let text = "";
+  		let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  		for (let i = 0; i < 10; i++)
+    		text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+  		return text;
+	}
+
+	_isEqual(obj1, obj2) {
+		return JSON.stringify(obj1) === JSON.stringify(obj2);
+	}
 	
 }

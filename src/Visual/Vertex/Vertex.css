@@ -3,6 +3,11 @@
 	position: absolute;
 	border: 1px solid black;
 	user-select: none;
+	z-index: 1;
+}
+
+.vertex-hover {
+	border: 3px double black;
 }
 
 .vertex-title {
@@ -16,9 +21,17 @@
 
 .vertex-coors {
 	display: flex;
+	cursor: crosshair;
 }
 
 .vertex-coors__elem {
 	border: 1px solid black;
 	width: 100%;
+}
+
+.vertex-links__item {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	margin: 0 4px;
 }

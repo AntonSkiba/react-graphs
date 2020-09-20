@@ -5,16 +5,6 @@ import './Menu.css';
 import Button from '../Button/Button';
 import MenuVertexItem from './MenuVertexItem/MenuVertexItem';
 
-const __generateUID = () => {
-	let text = "";
-  	let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-  for (let i = 0; i < 10; i++)
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-  return text;
-}
-
 export default class Menu extends RootComponent {
 	constructor(props) {
 		super(props);
@@ -34,7 +24,7 @@ export default class Menu extends RootComponent {
 		// для того, чтобы сработала проверка на рендере
 		this.setState({
 			vertices: Object.assign({
-				[key || __generateUID()]: vertex || {}
+				[key || this._generateUID()]: vertex || {}
 			}, this.state.vertices),
 			isHover: false
 		});

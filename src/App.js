@@ -12,9 +12,11 @@ export default class App extends RootComponent {
 		this._onItemDownToMove = this._onItemDownToMove.bind(this);
 		this._onChangeZone = this._onChangeZone.bind(this);
 		this._onReturnVertex = this._onReturnVertex.bind(this);
+
 	}
 
 	_onItemDownToMove(e, key, item) {
+		this._onChangeZone(true);
 		this._children.visual.createVertex(e, key, item);
 	}
 
@@ -28,15 +30,19 @@ export default class App extends RootComponent {
     render() {
         return (
             <div className="app">
-			  	<div id="visual" className="app-visual">
-				  	<Visual 
-						ref={this._setChildren.bind(this, 'visual')} 
-						onChangeZone={this._onChangeZone}
-						onReturnVertex={this._onReturnVertex}/>
-			  	</div>
-			  	<div className="app-menu">
-				  	<Menu ref={this._setChildren.bind(this, 'menu')} onItemDownToMove={this._onItemDownToMove}/>
-			  	</div>
+				<div className="app-header">
+				</div>
+				<div className="app-content">
+					<div id="visual" className="app-visual">
+						<Visual
+							ref={this._setChildren.bind(this, 'visual')}
+							onChangeZone={this._onChangeZone}
+							onReturnVertex={this._onReturnVertex}/>
+					</div>
+					<div className="app-menu">
+						<Menu ref={this._setChildren.bind(this, 'menu')} onItemDownToMove={this._onItemDownToMove}/>
+					</div>
+				</div>
             </div>
         );
     }

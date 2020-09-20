@@ -16,12 +16,18 @@ export default class Vertex extends RootComponent {
 				name: props.name,
 			},
 
-			_zone: 'visual'
+			_zone: 'menu'
 		}
 
 		this._dragMouseDown = this._dragMouseDown.bind(this);
 		this._elementDrag = this._elementDrag.bind(this);
 		this._dragMouseUp = this._dragMouseUp.bind(this);
+
+		this._edgeMouseDown = this._edgeMouseDown.bind(this);
+		this._edgeMouseDrag = this._edgeMouseDrag.bind(this);
+		this._edgeMouseUp = this._edgeMouseUp.bind(this);
+
+		this._doubleClickReturn = this._doubleClickReturn.bind(this);
 
 		// Вызываем, когда вершина создается, чтобы сразу ее перемещать
 		this._dragMouseDown();
@@ -34,16 +40,17 @@ export default class Vertex extends RootComponent {
 
 	_elementDrag(e) {
 		e = e || window.event;
-		if (e.clientX < window.innerWidth - 25
+		if (e.clientX < window.innerWidth - 30
 		 && e.clientY < window.innerHeight - 80
-		 && e.clientX > 25 && e.clientY > 0) {
+		 && e.clientX > 30 && e.clientY > 0) {
 			this.setState({
-				coors: [e.clientX - 50, e.clientY - 10]
+				coors: [e.clientX - 60, e.clientY - 10]
 			});
 		}
+		// Посылаем событие, о том, что вершина перемещается, для обновления координат в массиве вершин
+		this._notify('vertexDrag', [e.clientX, e.clientY + 20]);
 
 		// Определяем куда вершина наведена
-		
 		if (e.clientX > document.getElementById('menu').offsetLeft && this.state._zone !== 'menu') {
 			this.setState({
 				_zone: 'menu'
@@ -59,7 +66,7 @@ export default class Vertex extends RootComponent {
 
 	_dragMouseUp(e) {
 		document.removeEventListener('mouseup', this._dragMouseUp);
-		document.removeEventListener('mousemove', this._elementDrag)
+		document.removeEventListener('mousemove', this._elementDrag);
 
 		if (this.state._zone === 'menu') {
 			this._notify('returnVertex', e, this.state.vertex);
@@ -67,21 +74,56 @@ export default class Vertex extends RootComponent {
 		}
 	}
 
+	_doubleClickReturn(e) {
+		this._notify('returnVertex', e);
+		this._notify('remove', e);
+	}
+
+	_edgeMouseDown(e) {
+		this._notify('edgeMouseDown', e);
+		document.addEventListener('mousemove', this._edgeMouseDrag);
+		document.addEventListener('mouseup', this._edgeMouseUp);
+	}
+
+	_edgeMouseDrag(e) {
+		e = e || window.event;
+		this._notify('edgeDrag', e);
+	}
+
+	_edgeMouseUp(e) {
+		this._notify('edgeMouseUp', e);
+		document.removeEventListener('mouseup', this._edgeMouseUp);
+		document.removeEventListener('mousemove', this._edgeMouseDrag);
+	}
+
 	render() {
+		const vertexLinks = this.props.links.map(link => {
+			const linkText = link.to ? `→ ${link.to.name}`: `← ${link.from.name}`;
+			return (<div key={this._generateUID()} className="vertex-links__item" title={linkText}>{linkText}</div>)
+		});
 		return (
 			<div 
-				className="vertex" 
+				className={"vertex" + (this.props.isHover ? " vertex-hover" : "")} 
 				id={this.state.id} 
 				style={{top: this.state.coors[1], left: this.state.coors[0]}}>
 				<div 
 					className={"vertex-title" + (!this.props.name ? " app-disabled" : '')} 
 					title={this.state.vertex.name}
-					onMouseDown={this._dragMouseDown}>
+					onMouseDown={this._dragMouseDown}
+					onDoubleClick={this._doubleClickReturn}>
 					{this.state.vertex.name || '~ unnamed ~'}
 				</div>
-				<div className="vertex-coors">
+				<div 
+					className="vertex-coors"
+					onMouseDown={this._edgeMouseDown}
+					onMouseEnter={this._notify.bind(this, 'vertexMouseEnter')}
+					onMouseLeave={this._notify.bind(this, 'vertexMouseLeave')}>
 					<div className="vertex-coors__elem">x: {this.state.coors[0] || 0}</div>
 					<div className="vertex-coors__elem">y: {this.state.coors[1] || 0}</div>
+				</div>
+				<div className="vertex-links">
+					{!!vertexLinks.length && <span className="app-lable">links: </span>}
+					{vertexLinks}
 				</div>
 
 				<Button className="app-error" onClick={this._notify.bind(this, 'remove')}>✘</Button>
