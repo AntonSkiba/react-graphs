@@ -26,6 +26,9 @@ export default class MenuVertexItem extends RootComponent {
 				[state] : e.target.value
 			})
 		});
+
+		// Вызываем для того, чтобы предупредить пользователя о несохраненном файле
+		this._notify('stateChange');
 	}
 
 	_onSave(e) {

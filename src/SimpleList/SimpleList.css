@@ -1,0 +1,15 @@
+.simpleList {
+    height: 30px;
+	width: 200px;
+	border: 1px solid black;
+	left: 224px;
+	outline: none;
+}
+
+.simpleList:hover {
+	border: 3px double black;
+}
+
+.simpleList-item {
+	height: 30px;
+}

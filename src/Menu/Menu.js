@@ -16,6 +16,8 @@ export default class Menu extends RootComponent {
 		}
 
 		this.createVertex = this.createVertex.bind(this);
+		this.getData = this.getData.bind(this);
+		this.updateData = this.updateData.bind(this);
 	}
 
 	createVertex(e, key, vertex) {
@@ -28,6 +30,28 @@ export default class Menu extends RootComponent {
 			}, this.state.vertices),
 			isHover: false
 		});
+
+		// Вызываем для того, чтобы предупредить пользователя о несохраненном файле
+		this._notify('stateChange');
+	}
+
+	// Метод возвращает данные о вершинах из меню
+	getData() {
+		return {
+			vertices: this.state.vertices,
+		}
+	}
+
+	updateData(data) {
+		if (data) {
+			this.setState({
+				vertices: data.vertices
+			});
+		} else {
+			this.setState({
+				vertices: {}
+			});
+		}
 	}
 
 	_onSave(key, e, vertex) {
@@ -36,6 +60,9 @@ export default class Menu extends RootComponent {
 				[key]: vertex
 			})
 		});
+
+		// Вызываем для того, чтобы предупредить пользователя о несохраненном файле
+		this._notify('stateChange');
 	}
 
 	_onRemove(key) {
@@ -43,6 +70,9 @@ export default class Menu extends RootComponent {
 			delete prevState.vertices[key];
 			return { vertices: Object.assign({}, prevState.vertices)}
 		});
+
+		// Вызываем для того, чтобы предупредить пользователя о несохраненном файле
+		this._notify('stateChange');
 	}
 
 	// публичный метод, подсвечивает меню, если на него направлен элемент
@@ -65,6 +95,7 @@ export default class Menu extends RootComponent {
 						vertex={this.state.vertices[key]}
 						onSave={this._onSave.bind(this, key)}
 						onRemove={this._onRemove.bind(this, key)}
+						onStateChange={this._notify.bind(this, 'stateChange')}
 						onDownToMove={this._onDownToMove.bind(this, key)}
 						key={key}/>
 				)

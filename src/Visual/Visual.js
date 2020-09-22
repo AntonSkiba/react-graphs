@@ -27,6 +27,8 @@ export default class Visual extends RootComponent {
 		this._onVertexMouseHover = this._onVertexMouseHover.bind(this);
 
 		this._resize = this._resize.bind(this);
+		this.getData = this.getData.bind(this);
+		this.updateData = this.updateData.bind(this);
 	}
 
 	componentDidMount() {
@@ -37,6 +39,29 @@ export default class Visual extends RootComponent {
 
 	componentWillUnmount() {
 		window.removeEventListener('resize', this._resize);
+	}
+
+	updateData(data) {
+		if (data) {
+			this.setState({
+				vertices: data.vertices
+			});
+			this.edges = data.edges;
+		} else {
+			this.setState({
+				vertices: {}
+			});
+			this.edges = {};
+		}
+
+		this._redrawEdges();
+	}
+	// Метод возвращает данные о ребрах и вершинах с визуальной части
+	getData() {
+		return {
+			vertices: this.state.vertices,
+			edges: this.edges
+		}
 	}
 
 	_resize() {
@@ -54,8 +79,12 @@ export default class Visual extends RootComponent {
 		this._setVertexParams(key, {
 			...vertex,
 			links: [],
-			coors: [e.clientX - 25, e.clientY - 10]
+			isNew: true,
+			coors: [e.clientX - 60, e.clientY - 10]
 		});
+
+		// Вызываем для того, чтобы предупредить пользователя о несохраненном файле
+		this._notify('stateChange');
 	}
 
 	// Создаем новое ребро, по сколько ребро тянется от вершины, у нового ребра
@@ -68,10 +97,10 @@ export default class Visual extends RootComponent {
 			from: {
 				key: this.edgeDragFrom,
 				name: this.state.vertices[this.edgeDragFrom].name,
-				coors
+				coors: [coors[0] + 60, coors[1] + 30]
 			},
 			to: {
-				coors
+				coors: [coors[0] + 60, coors[1] + 30]
 			},
 		}
 
@@ -102,12 +131,14 @@ export default class Visual extends RootComponent {
 					linkIndex = index;
 				}
 			});
-			console.log(linkIndex);
 			this.state.vertices[vertexKey].links.splice(linkIndex, 1)
 			this._setVertexParams(vertexKey, {
 				links: this.state.vertices[vertexKey].links
 			});
 		});
+
+		// Вызываем для того, чтобы предупредить пользователя о несохраненном файле
+		this._notify('stateChange');
 
 		this.removeEdges(linkEdges);
 	}
@@ -115,7 +146,8 @@ export default class Visual extends RootComponent {
 	removeEdges(keys) {
 		keys.forEach(key => {
 			delete this.edges[key];
-		})
+		});
+
 		this._redrawEdges();
 	}
 
@@ -183,7 +215,8 @@ export default class Visual extends RootComponent {
 
 			if (!alreadyExists.length) {
 
-				this.edges[this.edgeDragKey].to.coors = this.state.vertices[this.edgeDragTo].coors;
+				this.edges[this.edgeDragKey].to.coors[0] = this.state.vertices[this.edgeDragTo].coors[0] + 60;
+				this.edges[this.edgeDragKey].to.coors[1] = this.state.vertices[this.edgeDragTo].coors[1] + 30;
 				this.edges[this.edgeDragKey].to.key = this.edgeDragTo;
 				this.edges[this.edgeDragKey].to.name =  this.state.vertices[this.edgeDragTo].name
 
@@ -201,6 +234,9 @@ export default class Visual extends RootComponent {
 						from: this.edges[this.edgeDragKey].from
 					}]
 				});
+
+				// Вызываем для того, чтобы предупредить пользователя о несохраненном файле
+				this._notify('stateChange');
 
 				this._redrawEdges();
 			} else {
@@ -229,22 +265,28 @@ export default class Visual extends RootComponent {
 	// Вызывается на перемещение вершины и записывает новые координаты
 	// Ребрам содержащим эти вершины, также устанавливаются новые координаты
 	_onVertexDrag(vertexKey, coors) {
-		this._setVertexParams(vertexKey, {coors});
+		this._setVertexParams(vertexKey, {
+			coors,
+			isNew: false
+		});
 
 		// Находим ребро и определяем какие координаты меняются
 		for (let edgeKey in this.edges) {
 			if (this.edges[edgeKey].from.key === vertexKey) {
-				this.edges[edgeKey].from.coors = coors;
+				this.edges[edgeKey].from.coors = [coors[0] + 60, coors[1] + 30]
 				this._redrawEdges();
 			} else if (this.edges[edgeKey].to.key === vertexKey) {
-				this.edges[edgeKey].to.coors = coors;
+				this.edges[edgeKey].to.coors = [coors[0] + 60, coors[1] + 30]
 				this._redrawEdges();
 			}
 		}
+
+		// Вызываем для того, чтобы предупредить пользователя о несохраненном файле
+		this._notify('stateChange');
 	}
 
 	// Метод вызывается при попадании курсора на вершину, когда протягивается ребро
-	// устанавливается hoder а вершину, а также записывается выделенная вершина или убирается,
+	// устанавливается hover а вершину, а также записывается выделенная вершина или убирается,
 	// чтобы при отпускании курсора, понять какую вершину нужно связать
 	_onVertexMouseHover(key, isHover, e) {
 		if (this.edgeDragFrom && this.edgeDragFrom !== key) {
@@ -276,7 +318,8 @@ export default class Visual extends RootComponent {
 				coors={this.state.vertices[key].coors}
 				isHover={this.state.vertices[key].isHover}
 				links={this.state.vertices[key].links}
-				name={this.state.vertices[key].name}/>
+				name={this.state.vertices[key].name}
+				isNew={this.state.vertices[key].isNew}/>
 		);
 
 		return (

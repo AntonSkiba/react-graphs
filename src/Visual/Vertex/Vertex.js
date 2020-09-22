@@ -12,11 +12,10 @@ export default class Vertex extends RootComponent {
 		this.state = {
 			id: props.id,
 			coors: props.coors,
-			vertex: {
-				name: props.name,
-			},
+			name: props.name,
 
-			_zone: 'menu'
+			_zone: 'menu',
+			propsSnapshot: [props.id, props.coors, props.name]
 		}
 
 		this._dragMouseDown = this._dragMouseDown.bind(this);
@@ -30,7 +29,27 @@ export default class Vertex extends RootComponent {
 		this._doubleClickReturn = this._doubleClickReturn.bind(this);
 
 		// Вызываем, когда вершина создается, чтобы сразу ее перемещать
-		this._dragMouseDown();
+		if (this.props.isNew) {
+			this._dragMouseDown();
+		}
+	}
+
+	// Проверяем обновление изи опций для обновления координат вершины
+	// все это только потому что у вершин из разных файлов могут быть одинаковые id
+	// но мы же пишем на реакте, поэтому мы не перестраиваем полностью вершину
+	// мы должны поменять ее координаты. Наверно проще было бы где-нибудь сверху
+	// вызывать полное перестроение дочерних элементов на загрузку нового проекта
+	static getDerivedStateFromProps(props, state) {
+		const newSnapshot = [props.id, props.coors, props.id]
+		if (JSON.stringify(newSnapshot) !== JSON.stringify(state.propsSnapshot)) {
+			return {
+				id: props.id,
+				name: props.name,
+				coors: props.coors,
+				propsSnapshot: newSnapshot
+			}
+		}
+		return null;
 	}
 
 	_dragMouseDown() {
@@ -48,7 +67,7 @@ export default class Vertex extends RootComponent {
 			});
 		}
 		// Посылаем событие, о том, что вершина перемещается, для обновления координат в массиве вершин
-		this._notify('vertexDrag', [e.clientX, e.clientY + 20]);
+		this._notify('vertexDrag', [e.clientX - 60, e.clientY - 10]);
 
 		// Определяем куда вершина наведена
 		if (e.clientX > document.getElementById('menu').offsetLeft && this.state._zone !== 'menu') {
@@ -69,7 +88,7 @@ export default class Vertex extends RootComponent {
 		document.removeEventListener('mousemove', this._elementDrag);
 
 		if (this.state._zone === 'menu') {
-			this._notify('returnVertex', e, this.state.vertex);
+			this._notify('returnVertex', e, this.state);
 			this._notify('remove', e);
 		}
 	}
@@ -108,10 +127,10 @@ export default class Vertex extends RootComponent {
 				style={{top: this.state.coors[1], left: this.state.coors[0]}}>
 				<div 
 					className={"vertex-title" + (!this.props.name ? " app-disabled" : '')} 
-					title={this.state.vertex.name}
+					title={this.state.name}
 					onMouseDown={this._dragMouseDown}
 					onDoubleClick={this._doubleClickReturn}>
-					{this.state.vertex.name || '~ unnamed ~'}
+					{this.state.name || '~ unnamed ~'}
 				</div>
 				<div 
 					className="vertex-coors"
@@ -122,7 +141,7 @@ export default class Vertex extends RootComponent {
 					<div className="vertex-coors__elem">y: {this.state.coors[1] || 0}</div>
 				</div>
 				<div className="vertex-links">
-					{!!vertexLinks.length && <span className="app-lable">links: </span>}
+					{!!vertexLinks.length && <span className="app-label">links: </span>}
 					{vertexLinks}
 				</div>
 

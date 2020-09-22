@@ -1,7 +1,8 @@
-import React, { Component } from 'react';
+import React from 'react';
+import RootComponent from '../RootComponent';
 import './Button.css';
 
-export default class Button extends Component {
+export default class Button extends RootComponent {
 	render() {
 		return (
 			<button
