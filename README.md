@@ -4,7 +4,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 In the project directory, you can run:
 ### `npm run dev`
-Run client on [http://localhost:3000](http://localhost:3000) (open this for development)
+Run client on [http://localhost:3000](http://localhost:3000) (open this for development).<br />
 Run server on [http://localhost:5000](http://localhost:5000)
 
 ### `npm start`
