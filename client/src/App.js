@@ -12,7 +12,7 @@ export default class App extends RootComponent {
 		super(props);
 
 		this.state = {
-			saved: JSON.parse(document.cookie.split('saved=')[1]?.split(';')[0] || '{}')
+			projects: []
 		}
 
 		this._onItemDownToMove = this._onItemDownToMove.bind(this);
@@ -24,23 +24,38 @@ export default class App extends RootComponent {
 		this._onStateChange = this._onStateChange.bind(this);
 	}
 
+	componentDidMount() {
+		fetch('/projects', {
+			method: 'GET'
+		})
+		.then(res => {
+			return res.json();
+		})
+		.then(projects => {
+			this.setState({
+				projects
+			});
+		});
+	}
+
 	_onItemDownToMove(e, key, item) {
 		this._onChangeZone(true);
 		this._children.visual.createVertex(e, key, item);
 	}
 
 	_loadApp(name) {
-		if (this.state.saved[name]) {
-			// глубокое копирование объекта
-			let savedObj = JSON.parse(JSON.stringify(this.state.saved[name]));
-			this._children.visual.updateData(savedObj.visual);
-			this._children.menu.updateData(savedObj.menu);
-			this._children.header.setName(name);
-
-			this._children.header.setWarningIcon(false);
-		} else {
-			alert(`Файл: ${name} не найден`);
-		}
+		fetch(`/load/${name}`, {
+			method: 'GET',
+		})
+		.then(res => res.json())
+		.then(res => {
+			console.log(res.message);
+			if (res.project) {
+				this._children.visual.updateData(res.project.visual);
+				this._children.menu.updateData(res.project.menu);
+				this._children.header.setName(name);
+			}
+		});
 	}
 
 	_createApp() {
@@ -61,30 +76,35 @@ export default class App extends RootComponent {
 		this._children.menu.createVertex(e, key, item);
 	}
 
-	// Сохраняем из приложения в куки, потому что мне стало лень 
-	// прикручивать бэк для тестового приложения \о/
+	// Ну теперь все в бэк сохраняется, кто же знал что у куки максимальный объем 4096b
+	// Правда сейчас записываю в json и ограничение вроде бы для fs на сервере 100мб *facepalm*
+	// бд точно не буду подключать
 	_onSave(e, name) {
-		const saveObj = {
+		const project = {
 			visual: this._children.visual.getData(),
 			menu: this._children.menu.getData()
 		}
 
-		this._children.header.setWarningIcon(false);
-
-		// Добавляем новый объект в saved
-		this.setState({
-			saved: Object.assign(this.state.saved, {
-				[name]: JSON.parse(JSON.stringify(saveObj))
-			})
+		fetch('/save', {
+			method: 'POST',
+			headers: {
+				Accept: "application/json",
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({name, project})
+		})
+		.then(res => res.json())
+		.then(res => {
+			console.log(res.message);
+			if (res.projects) {
+				this._children.header.setWarningIcon(false);
+				this.setState({
+					projects: res.projects
+				});
+			}
 		});
-
-		this._setCookie(this.state.saved);
 	}
-
-	_setCookie(saved) {
-		document.cookie = `saved=${JSON.stringify(saved)}; expires=Fri, 1 Jan 2100 00:00:00 GMT`;
-	}
-
+	
     render() {
         return (
             <div className="app">
@@ -94,7 +114,7 @@ export default class App extends RootComponent {
 						onSave={this._onSave}
 						onLoadApp={this._loadApp}
 						onCreateApp={this._createApp}
-						projects={Object.keys(this.state.saved)}/>
+						projects={this.state.projects}/>
 				</div>
 				<div id="visual" className="app-visual">
 					<Visual
