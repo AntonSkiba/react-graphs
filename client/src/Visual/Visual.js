@@ -15,6 +15,7 @@ export default class Visual extends RootComponent {
 			visualWidth: window.innerWidth - 300,
 			visualHeight: window.innerHeight
 		}
+		
 		// Не стейт, потому что пытался сделать через отдельный компонент ребро
 		// разочаровался, и отрисовываю просто здесь, через visualCanvas
 		this.edges = {};
@@ -80,7 +81,7 @@ export default class Visual extends RootComponent {
 			...vertex,
 			links: [],
 			isNew: true,
-			coors: [e.clientX - 60, e.clientY - 10]
+			coors: [e.clientX - 25, e.clientY + 10]
 		});
 
 		// Вызываем для того, чтобы предупредить пользователя о несохраненном файле
@@ -97,10 +98,10 @@ export default class Visual extends RootComponent {
 			from: {
 				key: this.edgeDragFrom,
 				name: this.state.vertices[this.edgeDragFrom].name,
-				coors: [coors[0] + 60, coors[1] + 30]
+				coors: [coors[0] + 25, coors[1] + 25]
 			},
 			to: {
-				coors: [coors[0] + 60, coors[1] + 30]
+				coors: [coors[0] + 25, coors[1] + 25]
 			},
 		}
 
@@ -143,6 +144,11 @@ export default class Visual extends RootComponent {
 		this.removeEdges(linkEdges);
 	}
 
+	// Метод копирует, то есть создает новую вершину на основе старой
+	copyVertex(key, e) {
+		this.createVertex(e, this._generateUID(), this.state.vertices[key]);
+	}
+
 	removeEdges(keys) {
 		keys.forEach(key => {
 			delete this.edges[key];
@@ -178,10 +184,39 @@ export default class Visual extends RootComponent {
 		for (let edgeKey in this.edges) {
 			this.ctx.moveTo(this.edges[edgeKey].from.coors[0], this.edges[edgeKey].from.coors[1]);
 			this.ctx.lineTo(this.edges[edgeKey].to.coors[0], this.edges[edgeKey].to.coors[1]);
-			this.ctx.fillRect(this.edges[edgeKey].to.coors[0], this.edges[edgeKey].to.coors[1], 5, 5);
+			// Понадобится, если нужно будет обозначать направление
+			// this.ctx.fillRect(this.edges[edgeKey].to.coors[0], this.edges[edgeKey].to.coors[1], 5, 5);
 		}
 		this.ctx.stroke();
 	}
+
+	// ~~~ Как-то не получилось, может вернусь когда-нибудь ~~~
+	// Проверяет кликнули ли на ребро
+	// _selectEdge(e) {
+	// 	for (const edge in this.edges) {
+	// 		const [x, y] = [e.clientX, e.clientY];
+	// 		let [x1, y1] = this.edges[edge].from.coors;
+	// 		const [x2, y2] =  this.edges[edge].to.coors;
+			
+	// 		// проверяем на совпадения, делаем специальные погрешности в 1 пиксель
+	// 		// иначе случится плохое - деление на ноль или px\py === 0, а это доп. проверки
+	// 		if (x1 === x || x1 === x2) {
+	// 			x1++;
+	// 		}
+
+	// 		if (y1 === y || y1 === y2) {
+	// 			y1++;
+	// 		}
+
+	// 		const px = (x - x1) / (x2 - x1);
+	// 		const py = (y - y1) / (y2 - y1);
+
+	// 		// проверяем на принадлжность к отрезку, и ставим диапозон на несколько пикселей от отрезка
+	// 		if (Math.abs(px - py) <= 0.3) {
+	// 			console.log('select this edge: "' + this.edges[edge].from.name + '"-"' + this.edges[edge].to.name + '"');
+	// 		}
+	// 	}
+	// }
 
 	// Метод определяет, есть ли ребро с этими вершинами, если есть возвращает массив найденных ребер,
 	// принимает либо один аргумент, либо два, то есть просто вершину, либо начало и конец ребра
@@ -211,12 +246,14 @@ export default class Visual extends RootComponent {
 			this._setVertexParams(this.edgeDragTo, {isHover: false});
 
 			// Если такое ребро уже существует, мы должны удалить это
-			let alreadyExists = this._edgeExists(this.edgeDragFrom, this.edgeDragTo);
+			// Если брать ребра с направлениями, то можно оставить только первый вызов
+			let alreadyExists = [...this._edgeExists(this.edgeDragFrom, this.edgeDragTo), 
+								 ...this._edgeExists(this.edgeDragTo, this.edgeDragFrom)];
 
 			if (!alreadyExists.length) {
 
-				this.edges[this.edgeDragKey].to.coors[0] = this.state.vertices[this.edgeDragTo].coors[0] + 60;
-				this.edges[this.edgeDragKey].to.coors[1] = this.state.vertices[this.edgeDragTo].coors[1] + 30;
+				this.edges[this.edgeDragKey].to.coors[0] = this.state.vertices[this.edgeDragTo].coors[0] + 25;
+				this.edges[this.edgeDragKey].to.coors[1] = this.state.vertices[this.edgeDragTo].coors[1] + 25;
 				this.edges[this.edgeDragKey].to.key = this.edgeDragTo;
 				this.edges[this.edgeDragKey].to.name =  this.state.vertices[this.edgeDragTo].name
 
@@ -273,10 +310,10 @@ export default class Visual extends RootComponent {
 		// Находим ребро и определяем какие координаты меняются
 		for (let edgeKey in this.edges) {
 			if (this.edges[edgeKey].from.key === vertexKey) {
-				this.edges[edgeKey].from.coors = [coors[0] + 60, coors[1] + 30]
+				this.edges[edgeKey].from.coors = [coors[0] + 25, coors[1] + 25]
 				this._redrawEdges();
 			} else if (this.edges[edgeKey].to.key === vertexKey) {
-				this.edges[edgeKey].to.coors = [coors[0] + 60, coors[1] + 30]
+				this.edges[edgeKey].to.coors = [coors[0] + 25, coors[1] + 25]
 				this._redrawEdges();
 			}
 		}
@@ -305,6 +342,7 @@ export default class Visual extends RootComponent {
 				key={key}
 				ref={this._setChildren.bind(this, key)}
 				onRemove={this.removeVertex.bind(this, key)}
+				onCopy={this.copyVertex.bind(this, key)}
 				onReturnVertex={this._onReturnVertex.bind(this, key)}
 				onVertexDrag={this._onVertexDrag.bind(this, key)}
 				onChangeZone={this._notify.bind(this, 'changeZone')}

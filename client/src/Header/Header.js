@@ -34,7 +34,7 @@ export default class Header extends RootComponent {
 
 	_showHeader(e) {
 		e = e || window.event;
-		if (e.clientY < this.height && e.clientX < document.getElementById('menu').offsetLeft && !this.state.show) {
+		if (e.clientY < this.height - 30 && e.clientX < document.getElementById('menu').offsetLeft && !this.state.show) {
 			this.setState({
 				show: true
 			})
@@ -102,7 +102,7 @@ export default class Header extends RootComponent {
 					className={"header-input" + (this.state.inputInvalid ? " header-input-error" : "")}
 					type="text"
 					size="10"
-					maxLength="10"
+					maxLength="30"
 					placeholder="name"
 					value={this.state.fileName}
 					onChange={this._inputName}/>

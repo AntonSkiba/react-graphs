@@ -1,37 +1,35 @@
 .vertex {
-	width: 120px;
+	width: 48px;
+    height: 48px;
 	position: absolute;
-	border: 1px solid black;
-	user-select: none;
 	z-index: 1;
+	user-select: none;
+	border-radius: 50%;
+	border: 2px solid black;
 }
 
 .vertex-hover {
-	border: 3px double black;
+	border: 4px double black;
+	margin: -2px 0 0 -2px;
 }
 
 .vertex-title {
-	border: 1px solid black;
-	cursor: move;
+	position: absolute;
+	top: -25px;
+	left: -27px;
+	width: 100px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	text-align: center;
+	cursor: move;
+	background-color: rgba(255, 255, 255, 0.8);
+	border-radius: 10px;
 }
 
-.vertex-coors {
-	display: flex;
+.vertex-edge {
+	position: absolute;
+	width: 50px;
+	height: 50px;
 	cursor: crosshair;
-}
-
-.vertex-coors__elem {
-	border: 1px solid black;
-	width: 100%;
-}
-
-.vertex-links__item {
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	margin: 0 4px;
 }

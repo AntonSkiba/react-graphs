@@ -5,16 +5,23 @@ import './Button.css';
 export default class Button extends RootComponent {
 	render() {
 		return (
-			<button
-				tabIndex="-1"
-				onClick={this.props.onClick} 
-				className={"button " + this.props.className}>
-				{this.props.children}
-			</button>
+			<div className={this.props.className}>
+				<button
+					title={this.props.title}
+					tabIndex="-1"
+					disabled={this.props.disabled}
+					onClick={this.props.onClick} 
+					className="button">
+					{this.props.children}
+				</button>
+			</div>
+			
 		);
 	}
 }
 
 Button.defaultProps = {
-	className: ''
+	className: '',
+	title: '',
+	disabled: false
 }

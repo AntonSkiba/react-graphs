@@ -2,7 +2,14 @@ import React from 'react';
 import RootComponent from '../../RootComponent';
 import './Vertex.css';
 
-import Button from '../../Button/Button';
+import VertexMenu from './VertexMenu/VertexMenu';
+// import Button from '../../Button/Button';
+
+// Понимаю, что это огромный костыль, но не знаю как по другому, задача слишком специфичная
+// нужно устанавливать каждый раз новый z-index на вершину, у которой открывается инфо-окно
+// иначе, они будут накладываться в порядке создания, и тогда в окне будут просвечиваться
+// (точнее будут поверх) другие вершины, можно поставить здесь 1 и убрать инкремент в _toggleInfo
+let zIndexForInfoPopup = 1;
 
 export default class Vertex extends RootComponent {
 	constructor(props) {
@@ -10,12 +17,15 @@ export default class Vertex extends RootComponent {
 		this._notify = this._notify.bind(this);
 
 		this.state = {
-			id: props.id,
-			coors: props.coors,
-			name: props.name,
+			vertex: {
+				id: props.id,
+				coors: props.coors,
+				name: props.name
+			},
 
 			_zone: 'menu',
-			propsSnapshot: [props.id, props.coors, props.name]
+			_showContext: false,
+			_propsSnapshot: [props.id, props.coors, props.name]
 		}
 
 		this._dragMouseDown = this._dragMouseDown.bind(this);
@@ -34,19 +44,21 @@ export default class Vertex extends RootComponent {
 		}
 	}
 
-	// Проверяем обновление изи опций для обновления координат вершины
+	// Проверяем обновление из опций для обновления координат вершины
 	// все это только потому что у вершин из разных файлов могут быть одинаковые id
 	// но мы же пишем на реакте, поэтому мы не перестраиваем полностью вершину
 	// мы должны поменять ее координаты. Наверно проще было бы где-нибудь сверху
 	// вызывать полное перестроение дочерних элементов на загрузку нового проекта
 	static getDerivedStateFromProps(props, state) {
 		const newSnapshot = [props.id, props.coors, props.id]
-		if (JSON.stringify(newSnapshot) !== JSON.stringify(state.propsSnapshot)) {
+		if (JSON.stringify(newSnapshot) !== JSON.stringify(state._propsSnapshot)) {
 			return {
-				id: props.id,
-				name: props.name,
-				coors: props.coors,
-				propsSnapshot: newSnapshot
+				vertex: {
+					id: props.id,
+					name: props.name,
+					coors: props.coors
+				},
+				_propsSnapshot: newSnapshot
 			}
 		}
 		return null;
@@ -59,15 +71,20 @@ export default class Vertex extends RootComponent {
 
 	_elementDrag(e) {
 		e = e || window.event;
-		if (e.clientX < window.innerWidth - 30
-		 && e.clientY < window.innerHeight - 80
-		 && e.clientX > 30 && e.clientY > 0) {
+		if (e.clientX < window.innerWidth - 25
+		 && e.clientY < window.innerHeight - 25
+		 && e.clientX > 25 && e.clientY > 20) {
 			this.setState({
-				coors: [e.clientX - 60, e.clientY - 10]
+				vertex: {
+					...this.state.vertex,
+					coors: [e.clientX - 25, e.clientY + 10]
+				}
 			});
+
+			// Посылаем событие, о том, что вершина перемещается, для обновления координат в массиве вершин
+			this._notify('vertexDrag', [e.clientX - 25, e.clientY + 10]);
 		}
-		// Посылаем событие, о том, что вершина перемещается, для обновления координат в массиве вершин
-		this._notify('vertexDrag', [e.clientX - 60, e.clientY - 10]);
+		
 
 		// Определяем куда вершина наведена
 		if (e.clientX > document.getElementById('menu').offsetLeft && this.state._zone !== 'menu') {
@@ -88,7 +105,7 @@ export default class Vertex extends RootComponent {
 		document.removeEventListener('mousemove', this._elementDrag);
 
 		if (this.state._zone === 'menu') {
-			this._notify('returnVertex', e, this.state);
+			this._notify('returnVertex', e, this.state.vertex);
 			this._notify('remove', e);
 		}
 	}
@@ -99,9 +116,12 @@ export default class Vertex extends RootComponent {
 	}
 
 	_edgeMouseDown(e) {
-		this._notify('edgeMouseDown', e);
-		document.addEventListener('mousemove', this._edgeMouseDrag);
-		document.addEventListener('mouseup', this._edgeMouseUp);
+		if (e.button === 0) {
+			this._notify('edgeMouseDown', e);
+			document.addEventListener('mousemove', this._edgeMouseDrag);
+			document.addEventListener('mouseup', this._edgeMouseUp);
+		}
+		
 	}
 
 	_edgeMouseDrag(e) {
@@ -115,37 +135,55 @@ export default class Vertex extends RootComponent {
 		document.removeEventListener('mousemove', this._edgeMouseDrag);
 	}
 
+	_toggleInfo(show, e) {
+		e.preventDefault();
+		if (this.state._showContext !== show) {
+			this.setState({
+				_showContext: show
+			});
+			if (show) {
+				zIndexForInfoPopup++;
+			}
+		}
+	}
+
 	render() {
-		const vertexLinks = this.props.links.map(link => {
-			const linkText = link.to ? `→ ${link.to.name}`: `← ${link.from.name}`;
-			return (<div key={this._generateUID()} className="vertex-links__item" title={linkText}>{linkText}</div>)
-		});
+		// const vertexLinks = this.props.links.map(link => {
+		// 	const linkText = link.to ? `→ ${link.to.name}`: `← ${link.from.name}`;
+		// 	return (<div key={this._generateUID()} className="vertex-links__item" title={linkText}>{linkText}</div>)
+		// });
+
 		return (
 			<div 
 				className={"vertex" + (this.props.isHover ? " vertex-hover" : "")} 
-				id={this.state.id} 
-				style={{top: this.state.coors[1], left: this.state.coors[0]}}>
+				id={this.state.vertex.id} 
+				style={{top: this.state.vertex.coors[1], left: this.state.vertex.coors[0], zIndex: zIndexForInfoPopup}}
+				>
 				<div 
 					className={"vertex-title" + (!this.props.name ? " app-disabled" : '')} 
-					title={this.state.name}
+					title={this.state.vertex.name}
 					onMouseDown={this._dragMouseDown}
 					onDoubleClick={this._doubleClickReturn}>
-					{this.state.name || '~ unnamed ~'}
+					{this.state.vertex.name || '~ unnamed ~'}
 				</div>
-				<div 
-					className="vertex-coors"
+				<div className="vertex-edge"
+					title='create edge'
 					onMouseDown={this._edgeMouseDown}
 					onMouseEnter={this._notify.bind(this, 'vertexMouseEnter')}
-					onMouseLeave={this._notify.bind(this, 'vertexMouseLeave')}>
-					<div className="vertex-coors__elem">x: {this.state.coors[0] || 0}</div>
-					<div className="vertex-coors__elem">y: {this.state.coors[1] || 0}</div>
+					onMouseLeave={this._notify.bind(this, 'vertexMouseLeave')}
+					onContextMenu={this._toggleInfo.bind(this, true)}>
 				</div>
-				<div className="vertex-links">
+				{this.state._showContext && <VertexMenu 
+					onClose={this._toggleInfo.bind(this, false)}
+					onRemove={this._notify.bind(this, 'remove')}
+					onCopy={this._notify.bind(this, 'copy')}
+					info={this.state.vertex}/>}
+				{/* <div className="vertex-links">
 					{!!vertexLinks.length && <span className="app-label">links: </span>}
 					{vertexLinks}
-				</div>
+				</div> */}
 
-				<Button className="app-error" onClick={this._notify.bind(this, 'remove')}>✘</Button>
+				{/* <Button className="app-error" onClick={this._notify.bind(this, 'remove')}>✘</Button> */}
 			</div>
 		);
 	}

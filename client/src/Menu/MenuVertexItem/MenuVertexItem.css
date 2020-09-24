@@ -9,7 +9,7 @@
 .menu-item-row {
 	display: flex;
 	margin: 4px;
-	height: 25px;
+	height: 30px;
 	align-items: baseline;
 }
 
@@ -34,7 +34,6 @@
 
 .menu-item__button {
 	width: 50px;
-	height: 25px;
 	margin: 0 4px;
 }
 

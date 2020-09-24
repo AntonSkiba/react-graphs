@@ -1,0 +1,54 @@
+.vertexMenu {
+	display: flex;
+	flex-direction: column;
+	position: absolute;
+	border: 1px solid black;
+	background-color: white;
+}
+
+/* Header */
+.vertexMenu-header {
+	height: 30px;
+	display: flex;
+}
+
+.vertexMenu-header__name {
+	border: 1px solid black;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	text-align: center;
+	padding: 6px 4px;
+	flex-grow: 1;
+}
+
+.vertexMenu-header__button {
+	width: 30px;
+	flex-shrink: 0;
+}
+
+/* Body */
+.vertexMenu-body {
+	flex-grow: 1;
+}
+
+.vertexMenu-body__row {
+	display: flex;
+	margin: 4px;
+}
+
+/* Footer */
+.vertexMenu-footer {
+	display: flex;
+	height: 30px;
+}
+
+.vertexMenu-footer__copy {
+	flex-grow: 1;
+}
+
+.vertexMenu-footer__delete {
+    flex-shrink: 0;
+    width: 80px;
+
+}
