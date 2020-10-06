@@ -1,15 +1,8 @@
 import React from 'react';
-import RootComponent from '../../RootComponent';
+import RootComponent from '../../../RootComponent';
 import './Vertex.css';
 
 import VertexMenu from './VertexMenu/VertexMenu';
-// import Button from '../../Button/Button';
-
-// Понимаю, что это огромный костыль, но не знаю как по другому, задача слишком специфичная
-// нужно устанавливать каждый раз новый z-index на вершину, у которой открывается инфо-окно
-// иначе, они будут накладываться в порядке создания, и тогда в окне будут просвечиваться
-// (точнее будут поверх) другие вершины, можно поставить здесь 1 и убрать инкремент в _toggleInfo
-let zIndexForInfoPopup = 1;
 
 export default class Vertex extends RootComponent {
 	constructor(props) {
@@ -28,6 +21,8 @@ export default class Vertex extends RootComponent {
 			_propsSnapshot: [props.id, props.coors, props.name]
 		}
 
+		this.zIndexForInfoPopup = 1;
+
 		this._dragMouseDown = this._dragMouseDown.bind(this);
 		this._elementDrag = this._elementDrag.bind(this);
 		this._dragMouseUp = this._dragMouseUp.bind(this);
@@ -37,6 +32,8 @@ export default class Vertex extends RootComponent {
 		this._edgeMouseUp = this._edgeMouseUp.bind(this);
 
 		this._doubleClickReturn = this._doubleClickReturn.bind(this);
+
+		this._updateVertex = this._updateVertex.bind(this);
 
 		// Вызываем, когда вершина создается, чтобы сразу ее перемещать
 		if (this.props.isNew) {
@@ -141,24 +138,35 @@ export default class Vertex extends RootComponent {
 			this.setState({
 				_showContext: show
 			});
+			// Когда показываем инфо, чуть-чуть выдвигаем вершину на первый план
 			if (show) {
-				zIndexForInfoPopup++;
+				this.zIndexForInfoPopup = 2;
+			} else {
+				this.zIndexForInfoPopup = 1;
 			}
 		}
 	}
 
+	_updateVertex(e, info) {
+		const vertex = Object.assign(this.state.vertex, info);
+		this.setState({
+			vertex
+		});
+
+		this._notify('update', vertex);
+	}
+
 	render() {
-		// const vertexLinks = this.props.links.map(link => {
-		// 	const linkText = link.to ? `→ ${link.to.name}`: `← ${link.from.name}`;
-		// 	return (<div key={this._generateUID()} className="vertex-links__item" title={linkText}>{linkText}</div>)
-		// });
 
 		return (
 			<div 
 				className={"vertex" + (this.props.isHover ? " vertex-hover" : "")} 
 				id={this.state.vertex.id} 
-				style={{top: this.state.vertex.coors[1], left: this.state.vertex.coors[0], zIndex: zIndexForInfoPopup}}
-				>
+				style={{
+					top: this.state.vertex.coors[1], 
+					left: this.state.vertex.coors[0],
+					zIndex: this.zIndexForInfoPopup
+				}}>
 				<div 
 					className={"vertex-title" + (!this.props.name ? " app-disabled" : '')} 
 					title={this.state.vertex.name}
@@ -173,17 +181,12 @@ export default class Vertex extends RootComponent {
 					onMouseLeave={this._notify.bind(this, 'vertexMouseLeave')}
 					onContextMenu={this._toggleInfo.bind(this, true)}>
 				</div>
-				{this.state._showContext && <VertexMenu 
+				{this.state._showContext && <VertexMenu
+					onUpdate={this._updateVertex}
 					onClose={this._toggleInfo.bind(this, false)}
 					onRemove={this._notify.bind(this, 'remove')}
 					onCopy={this._notify.bind(this, 'copy')}
-					info={this.state.vertex}/>}
-				{/* <div className="vertex-links">
-					{!!vertexLinks.length && <span className="app-label">links: </span>}
-					{vertexLinks}
-				</div> */}
-
-				{/* <Button className="app-error" onClick={this._notify.bind(this, 'remove')}>✘</Button> */}
+					vertex={this.state.vertex}/>}
 			</div>
 		);
 	}

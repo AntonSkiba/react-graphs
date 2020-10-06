@@ -1,0 +1,19 @@
+.creator {
+	display: flex;
+	height: 100%;
+}
+
+.creator-visual {
+	width: 100%;
+}
+
+.creator-menu {
+	width: 300px;
+	border: 1px solid black;
+	flex-shrink: 0;
+}
+
+.creator-header__button {
+	width: 80px;
+	margin: 4px;
+}

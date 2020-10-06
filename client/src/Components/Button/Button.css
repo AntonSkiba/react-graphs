@@ -8,6 +8,9 @@
 	cursor: pointer;
 	user-select: none;
 	color: inherit;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .button:hover {

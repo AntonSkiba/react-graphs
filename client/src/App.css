@@ -1,20 +1,5 @@
 .app {
-	display: flex;
 	height: 100%;
-}
-
-.app-header {
-	position: absolute;
-}
-
-.app-visual {
-	width: 100%;
-}
-
-.app-menu {
-	width: 300px;
-	border: 1px solid black;
-	flex-shrink: 0;
 }
 
 .app-success {
@@ -36,4 +21,10 @@
 .app-label {
 	font-size: 12px;
 	margin: 0 4px;
+}
+
+.app-icon {
+	margin: 4px 4px 4px 8px;
+    width: 20px;
+    text-align: center;
 }

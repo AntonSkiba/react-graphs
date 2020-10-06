@@ -1,7 +1,8 @@
 import React from 'react';
-import RootComponent from '../../RootComponent';
+import RootComponent from '../../../RootComponent';
 import './MenuVertexItem.css'
-import Button from '../../Button/Button';
+import Button from '../../../Components/Button/Button';
+import CustomInput from '../../../Components/CustomInput/CustomInput';
 
 export default class MenuVertexItem extends RootComponent {
 	constructor(props) {
@@ -18,24 +19,39 @@ export default class MenuVertexItem extends RootComponent {
 		this._onSave = this._onSave.bind(this);
 		this._onEdit = this._onEdit.bind(this);
 		this._onMouseDown = this._onMouseDown.bind(this);
+		this._inputChange = this._inputChange.bind(this);
 	}
 
-	_inputChange(state, e) {
-		this.setState({
-			vertex: Object.assign(this.state.vertex, {
-				[state] : e.target.value
-			})
-		});
+	_inputChange() {
 
 		// Вызываем для того, чтобы предупредить пользователя о несохраненном файле
 		this._notify('stateChange');
 	}
 
 	_onSave(e) {
-		this.setState({
-			_editMode: false
-		});
-		this._notify('save', e, this.state.vertex);	
+		// Собираем все текстовые инпуты и смотрим на результаты их валидаций
+		const vertex = Object.assign({}, this.state.vertex);
+		let hasError = false;
+
+		for (const childName in this._children) {
+			const vertexState = childName.split('input-')[1];
+			const result = this._children[childName].getValue();
+			// может быть пустая строка, поэтому !== null
+			if (vertexState && result !== null) {
+				vertex[vertexState] = result;
+			} else {
+				hasError = true;
+			}
+		}
+
+		if (!hasError) {
+			this.setState({
+				_editMode: false,
+				vertex
+			});
+			this._notify('save', e, vertex);	
+		}
+		
 	}
 
 	_onEdit(e) {
@@ -62,14 +78,12 @@ export default class MenuVertexItem extends RootComponent {
 					className={"menu-item-row" + (!this.state._editMode ? " menu-item__movable" : '')} 
 					onMouseDown={this._onMouseDown}>
 					<div className="menu-item-row__label">Name</div>
-					<input
-						className="menu-item-row__input" 
-						type="text" 
-						size="30"
+					<CustomInput
+						ref={this._setChildren.bind(this, 'input-name')}
 						placeholder="of vertex"
 						disabled={!this.state._editMode}
 						value={this.state.vertex.name || ''}
-						onChange={this._inputChange.bind(this, 'name')}/>
+						onChange={this._inputChange}/>
 				</div>
 
 				<div className="menu-item-row menu-item__buttons">

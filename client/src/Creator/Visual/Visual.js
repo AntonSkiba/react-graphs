@@ -1,5 +1,5 @@
 import React from 'react';
-import RootComponent from '../RootComponent';
+import RootComponent from '../../RootComponent';
 import './Visual.css';
 
 import Vertex from './Vertex/Vertex'
@@ -11,6 +11,17 @@ export default class Visual extends RootComponent {
 
 		this.state = {
 			vertices: {},
+
+			selection: {
+				show: false,
+				items: [],
+				style: {
+					top: 0,
+					left: 0,
+					width: 0,
+					height: 0
+				}
+			},
 
 			visualWidth: window.innerWidth - 300,
 			visualHeight: window.innerHeight
@@ -26,6 +37,16 @@ export default class Visual extends RootComponent {
 
 		this.createVertex = this.createVertex.bind(this);
 		this._onVertexMouseHover = this._onVertexMouseHover.bind(this);
+
+		// Выделение области
+		this._onStartSelect = this._onStartSelect.bind(this);
+		this._onEndSelect = this._onEndSelect.bind(this);
+		this._onMoveSelect = this._onMoveSelect.bind(this);
+
+		// Передвижение выделенной области
+		this._selectionMouseDown = this._selectionMouseDown.bind(this);
+		this._selectionMove = this._selectionMove.bind(this);
+		this._selectionMouseUp = this._selectionMouseUp.bind(this);
 
 		this._resize = this._resize.bind(this);
 		this.getData = this.getData.bind(this);
@@ -43,18 +64,20 @@ export default class Visual extends RootComponent {
 	}
 
 	updateData(data) {
+		// Если не перезаписывать selection, получается прикольный баг с переносом вершин в другой проект
 		if (data) {
 			this.setState({
-				vertices: data.vertices
+				vertices: data.vertices,
+				selection: {}
 			});
 			this.edges = data.edges;
 		} else {
 			this.setState({
-				vertices: {}
+				vertices: {},
+				selection: {}
 			});
 			this.edges = {};
 		}
-
 		this._redrawEdges();
 	}
 	// Метод возвращает данные о ребрах и вершинах с визуальной части
@@ -142,6 +165,11 @@ export default class Visual extends RootComponent {
 		this._notify('stateChange');
 
 		this.removeEdges(linkEdges);
+	}
+
+	updateVertex(key, vertex) {
+		this._setVertexParams(key, {...vertex});
+		this._notify('stateChange');
 	}
 
 	// Метод копирует, то есть создает новую вершину на основе старой
@@ -335,6 +363,126 @@ export default class Visual extends RootComponent {
 		}
 	}
 
+	_onStartSelect(e) {
+		document.addEventListener('mouseup', this._onEndSelect);
+		document.addEventListener('mousemove', this._onMoveSelect);
+		this.setState({
+			selection: {
+				...this.state.selection,
+				show: true,
+				startPoint: [e.clientX, e.clientY],
+				style: {
+					top: e.clientY,
+					left: e.clientX,
+					width: 3,
+					height: 3
+				}
+			}
+		});
+	}
+
+	_onMoveSelect(e) {
+		const top = Math.min(e.clientY, this.state.selection.startPoint[1]);
+		const left = Math.min(e.clientX, this.state.selection.startPoint[0]);
+		const height = Math.abs(e.clientY - this.state.selection.startPoint[1])
+		const width = Math.abs(e.clientX - this.state.selection.startPoint[0]);
+
+		this.setState({
+			selection: {
+				...this.state.selection,
+				style: {top, left, width, height}
+			}
+		});
+	}
+
+	_onEndSelect(e) {
+		document.removeEventListener('mouseup', this._onEndSelect);
+		document.removeEventListener('mousemove', this._onMoveSelect);
+
+		const selectedItems = [];
+
+		for (const key in this.state.vertices) {
+			const startSelection = [this.state.selection.style.left, this.state.selection.style.top];
+			const endSelecttion = [this.state.selection.style.left + this.state.selection.style.width, this.state.selection.style.top  + this.state.selection.style.height];
+			const vertex = this.state.vertices[key].coors;
+			if (startSelection[0] < vertex[0] && vertex[0] < endSelecttion[0]
+			 && startSelection[1] < vertex[1] && vertex[1] < endSelecttion[1]) {
+				selectedItems.push({
+					key,
+					relativeCoors: [startSelection[0] - vertex[0], startSelection[1] - vertex[1]]
+				});
+			}
+		}
+
+		if (selectedItems.length) {
+			this.setState({
+				selection: {
+					...this.state.selection,
+					style: {
+						...this.state.selection.style,
+						cursor: 'move'
+					},
+					items: selectedItems
+				}
+			});
+		} else {
+			this.setState({
+				selection: {
+					...this.state.selection,
+					show: false,
+					style: {
+						...this.state.selection.style,
+						cursor: 'default'
+					},
+					items: []
+				}
+			});
+		}
+	}
+
+	_selectionMouseDown(e) {
+		document.addEventListener('mouseup', this._selectionMouseUp);
+		document.addEventListener('mousemove', this._selectionMove);
+		this.setState({
+			selection: {
+				...this.state.selection,
+				offsetPosition: [e.clientX, e.clientY]
+			}
+		});
+	}
+
+	_selectionMove(e) {
+		// Перемещаем выделенную область
+		const moveCoors = [
+			this._children.selection.offsetLeft - this.state.selection.offsetPosition[0] + e.clientX,
+			this._children.selection.offsetTop - this.state.selection.offsetPosition[1] + e.clientY
+		];
+		this.setState({
+			selection: {
+				...this.state.selection,
+				offsetPosition: [e.clientX, e.clientY],
+				style: {
+					...this.state.selection.style,
+					top: moveCoors[1],
+					left: moveCoors[0]
+				}
+			}
+		});
+
+		// Перемещаем выделенные вершины
+		this.state.selection.items.forEach(({key, relativeCoors}) => {
+			this._onVertexDrag(key, [
+				moveCoors[0] - relativeCoors[0],
+				moveCoors[1] - relativeCoors[1],
+			]);
+		});
+	}
+
+	_selectionMouseUp(e) {
+		document.removeEventListener('mouseup', this._selectionMouseUp);
+		document.removeEventListener('mousemove', this._selectionMove);
+	}
+
 	render() {
 		const visualVertices = Object.keys(this.state.vertices).map((key) =>
 			<Vertex 
@@ -342,6 +490,7 @@ export default class Visual extends RootComponent {
 				key={key}
 				ref={this._setChildren.bind(this, key)}
 				onRemove={this.removeVertex.bind(this, key)}
+				onUpdate={this.updateVertex.bind(this, key)}
 				onCopy={this.copyVertex.bind(this, key)}
 				onReturnVertex={this._onReturnVertex.bind(this, key)}
 				onVertexDrag={this._onVertexDrag.bind(this, key)}
@@ -366,9 +515,18 @@ export default class Visual extends RootComponent {
 					ref={this._setChildren.bind(this, 'visualCanvas')}
 					className="visual"
 					height={this.state.visualHeight}
-					width={this.state.visualWidth}>
+					width={this.state.visualWidth}
+					onMouseDown={this._onStartSelect}>
 				</canvas>
 				{visualVertices}
+
+				{this.state.selection.show && 
+					<div
+						ref={this._setChildren.bind(this, 'selection')}
+						style={this.state.selection.style}
+						className="visual-selection"
+						onMouseDown={this._selectionMouseDown}></div>
+				}
 			</div>
 		);
 	}

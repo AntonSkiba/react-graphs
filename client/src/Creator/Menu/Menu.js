@@ -1,8 +1,8 @@
 import React from 'react';
-import RootComponent from '../RootComponent';
+import RootComponent from '../../RootComponent';
 import './Menu.css';
 
-import Button from '../Button/Button';
+import Button from '../../Components/Button/Button';
 import MenuVertexItem from './MenuVertexItem/MenuVertexItem';
 
 export default class Menu extends RootComponent {

@@ -1,0 +1,10 @@
+.visual {
+	z-index: -2;
+}
+
+.visual-selection {
+	z-index: 10;
+	background-color: rgba(255, 255, 255, 0.7);
+	position: absolute;
+	border: 1px solid black;
+}

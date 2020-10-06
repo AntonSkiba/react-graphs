@@ -1,0 +1,32 @@
+.input {
+	border-width: 0;
+	padding: 0;
+	border-bottom: 1px solid black;
+	outline: none;
+	margin: 0 4px;
+	max-width: 100%;
+	min-width: 0;
+	cursor: inherit;
+}
+
+.input-contaner {
+	position: relative;
+	display: flex;
+	align-items: baseline;
+}
+
+.input:disabled {
+	border: none;
+}
+
+.input-error {
+	border-bottom: 1px solid #b90909;
+}
+
+.input-error__list {
+	background-color: white;
+	border: 1px solid #b90909;
+	position: absolute;
+	top: 20px;
+	left: 4px;
+}

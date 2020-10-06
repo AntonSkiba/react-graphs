@@ -1,5 +1,5 @@
 import React from 'react';
-import RootComponent from '../RootComponent';
+import RootComponent from '../../RootComponent';
 import './Button.css';
 
 export default class Button extends RootComponent {
