@@ -77,67 +77,87 @@ app.get('/load/:name', (req, res) => {
 	});
 });
 
-app.get('/generate', (req, res) => {
-	const {name, width, height, block} = req.query;
+app.post('/generate', (req, res) => {
+	const {name, width, height, block, octave, freq, flatness} = req.body;
 	const dir = path.join(__dirname, 'saved', `${name}.json`);
 	fs.readFile(dir, 'utf8', (err, loaded) => {
 		if (err) {
 			res.status(500).json({error: 'Проект не загружается, попробуйте позже'});
 			return console.error(err);
 		}
-		// генерируем ландшафт
-		const simplex = new SimplexNoise();
-		const elevation = getElevation(simplex, width/block, height/block);
+		// генерируем карту
+		// высот
+		const simplexHeight = new SimplexNoise('height');
+		// влажности
+		const simplexMois = new SimplexNoise('moisture');
+
+		const heightMap = getMap(
+			simplexHeight,
+			width/block,
+			height/block,
+			octave,
+			freq,
+			flatness
+		);
+
+		const moisMap = getMap(
+			simplexMois,
+			width/block,
+			height/block,
+			4,
+			4,
+			1
+		);
 
 		const project = JSON.parse(loaded);
-		res.status(200).json({landscape: elevation});
+		res.status(200).json({heightMap, moisMap});
 	});
 });
 
 
-function getElevation(simplex, width, height) {
-	const elevation = [];
+function getMap(simplex, width, height, octave, freq, flatness) {
+	const map = [];
 	let min = [], max = [];
 	for (let y = 0; y < height; y++) {
-		elevation[y] = [];
+		map[y] = [];
 		for (let x = 0; x < width; x++) {
 			const nx = x/width;
 			const ny = y/height;
 
-			elevation[y][x] = customNoise(simplex, [nx, ny], 4, 5);
+			map[y][x] = customNoise(simplex, [nx, ny], octave, freq);
 		}
-		min.push(Math.min(...elevation[y]));
-		max.push(Math.max(...elevation[y]));
+		min.push(Math.min(...map[y]));
+		max.push(Math.max(...map[y]));
 	}
 
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
 			// Нормализуем
-			const posElevation = normilize(elevation[y][x], Math.max(...max), Math.min(...min));
+			const posPoint = normilize(map[y][x], Math.max(...max), Math.min(...min));
 			
 			// Задаем равнинность
-			elevation[y][x] = Math.pow(posElevation, 2);
+			map[y][x] = Math.pow(posPoint, flatness);
 		}
 	}
 
-	return elevation;
+	return map;
 }
 
 // octave: отвечает за скалистость
-function customNoise(simplex, [nx, ny], octave = 1) {
+// freq: отвечает за частоту рельефа, то есть чем больше, тем больше гор
+function customNoise(simplex, [nx, ny], octave = 1, freq = 1) {
 	let value = 0;
-	let freq = 1;
 
 	for (let i = 0; i < octave; i++) {
 		value += simplex.noise2D(freq*nx, freq*ny)/freq;
 		freq *= 2;
 	}
-	
+
 	return value;
 }
 
 function normilize(val, max, min) {
-	return (val - min) / (max - min); 
+	return (val - min) / (max - min);
 }
 
 const PORT = config.get('port') || 5000;
