@@ -11,7 +11,16 @@
 }
 
 .landscape-header__logo {
-	margin: 4px 8px;
+	padding: 4px 8px;
 	font-weight: bold;
-	font-size: 24px;
+	font-size: 18px;
+	border-right: 1px solid black;
+}
+
+.landscape-header__buttons {
+	margin: 4px 8px;
+}
+
+.landscape-header__buttons-item {
+	width: 80px;
 }

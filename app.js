@@ -104,7 +104,7 @@ app.post('/generate', (req, res) => {
 			simplexMois,
 			width/block,
 			height/block,
-			4,
+			10,
 			4,
 			1
 		);

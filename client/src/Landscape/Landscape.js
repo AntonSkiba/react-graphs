@@ -6,6 +6,7 @@ import Loader from '../Components/Loader/Loader';
 import Header from '../Header/Header';
 import * as THREE from 'three';
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import Button from '../Components/Button/Button';
 
 
 class Landscape extends RootComponent {
@@ -23,11 +24,11 @@ class Landscape extends RootComponent {
 			// Массив фигур/пикселей для отрисовки ландшафта
 			data: [],
 			// Скалистость
-			octave: 10,
+			octave: 6,
 			// Частота рельефа, то есть чем больше, тем больше рельефа
 			freq: 3,
 			// Равнинность, чем больше, тем больше равнинных поверхностей
-			flatness: 2,
+			flatness: 3,
 		}
 
 		// Ширина и высота
@@ -130,12 +131,16 @@ class Landscape extends RootComponent {
 				colors.push(...color);
 
 				// линия воды
-				if (heightMap[y][x] < 0.1) {
-					heightMap[y][x] = 0.1
+				if (heightMap[y][x] < 0.08) {
+					heightMap[y][x] = 0.08
 				}
 
+				// if (heightMap[y][x] > 0.26 + moisMap[y][x]/2 && heightMap[y][x] < 0.46 + moisMap[y][x]/2) {
+				// 	heightMap[y][x] = 0.32 + moisMap[y][x]/2;
+				// }
+
 				const idx = y*heightMap.length + x
-				position.setZ(idx, heightMap[y][x]*300);
+				position.setZ(idx, heightMap[y][x]*400);
 			}
 		}
 		geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
@@ -147,7 +152,8 @@ class Landscape extends RootComponent {
 		const material = new THREE.MeshPhongMaterial({
 			color: 0xffffff,
 			vertexColors: THREE.VertexColors,
-			side: THREE.DoubleSide
+			side: THREE.DoubleSide,
+			shininess: 10
 		});
 
 
@@ -168,6 +174,11 @@ class Landscape extends RootComponent {
 		directionalLight.shadowCameraVisible = true;
 
 		this.scene.add(directionalLight);
+
+		const color = 0xFFFFFF;  // white
+		const near = 0.1;
+		const far = 2000;
+		this.scene.fog = new THREE.Fog(color, near, far);
 	}
 
 	startAnimationLoop = () => {
@@ -178,7 +189,7 @@ class Landscape extends RootComponent {
 	
 	getBiom(h, m) {
 		const colors = {
-			OCEAN: [62, 96, 193],
+			OCEAN: [255*Math.pow(h*8, 2), 255*Math.pow(h*8, 2), 255*10*h],
 			SHALLOW: [93, 128, 255],
 			BEACH: [181, 160, 112],
 			SCORCHED: [51, 51, 51],
@@ -196,7 +207,7 @@ class Landscape extends RootComponent {
 			SUBTROPICAL_DESERT: [171, 165, 109]
 		}
 		// вода
-		if (h < 0.1) return (h < 0.08 ? colors.OCEAN : colors.SHALLOW);
+		if (h < 0.08) return colors.OCEAN;
 
 		// пляж
 		if (h < 0.12) return colors.BEACH;
@@ -245,6 +256,9 @@ class Landscape extends RootComponent {
 				{this.state.loader && <Loader />}
 				<Header>
 					<div className="landscape-header__logo">Project: <span className="app-functional">{this.props.project}</span></div>
+					<div className="landscape-header__buttons">
+						<Button className="landscape-header__buttons-item">Rebuild</Button>
+					</div>
 				</Header>
 
 				<div className="landscape-view" ref={ref => (this.mount = ref)} />

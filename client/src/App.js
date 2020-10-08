@@ -10,13 +10,11 @@ export default class App extends RootComponent {
         super(props);
 
         this.state = {
-            showLandscape: false,
-            loader: true,
-            project: {}
+            showLandscape: true,
+            project: '123'
         };
 
         this._onRender = this._onRender.bind(this);
-        // this._onLandscapeCalculated = this._onLandscapeCalculated.bind(this);
     }
 
     _onRender(project) {
@@ -25,20 +23,13 @@ export default class App extends RootComponent {
             showLandscape: true,
         });
     }
-
-    _onLandscapeCalculated() {
-        // this.setState({
-        //     loader: false
-        // })
-    }
 	
     render() {
         return (
             <div className="app">
                 {this.state.showLandscape 
                 ? <Landscape
-                    project={this.state.project}
-                    onLandscapeCalculated={this._onLandscapeCalculated}/> 
+                    project={this.state.project}/> 
                 : <Creator 
                     onRender={this._onRender}/>}
 				
