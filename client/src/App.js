@@ -10,8 +10,8 @@ export default class App extends RootComponent {
         super(props);
 
         this.state = {
-            showLandscape: true,
-            project: '123'
+            showLandscape: false,
+            project: ''
         };
 
         this._onRender = this._onRender.bind(this);
